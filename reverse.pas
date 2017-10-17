@@ -76,7 +76,8 @@ begin
     writeln(']');
     writeln('}');
 end;
-    
+
+{ Section Push/Pop }
 
 procedure push_back(var ls: Pmlist; const value: _T);
 begin
@@ -135,20 +136,17 @@ var
 begin
     if ls^.first^.next = nil then // empty
         exit;
-    if ls^.first^.next^.next = nil then // 1 element
+    if ls^.first^.next^.next = nil then // has 1 element
         exit;
     pre := ls^.first^.next;
     i := pre^.next;
-    pre^.next := nil;
-    ls^.last := pre; // Head becomes tail
-    dispose(ls^.first); // Kill FH
+    ls^.first^.next := ls^.last; // FH points to former tail
+    ls^.last := pre;  // 1st actual element...
+    pre^.next := nil; // ...becomes tail
     while i <> nil do begin
         swap(pre, i^.next);
         swap(i, pre);
     end;
-    new(i); // Create FH after former tail
-    ls^.first := i;
-    ls^.first^.next := pre;
 end;
 
 procedure sort(var ls: Pmlist);
@@ -156,31 +154,17 @@ var
     p, i, n: Pmlist_el;
     f: boolean;
 begin
-    if ls^.size < 2 then
+    if ls^.first^.next = nil then
         exit;
-    if ls^.size = 2 then begin
-        if ls^.first.value > ls^.last^.value then begin
-            swap(ls^.first, ls^.last);
-            swap(ls^.first^.next, ls^.last^.next);
-        end;
-        exit;
-    end;
-    if ls^.size = 3 then begin
-        
-        exit;
-    end;
     f := true;
     while f do begin
         f := false;
-        p := ls^.first;
-        //i := pre^.next;
-        //if (pre^.value > i^.value) then begin
-        //    f := true;
-        //    ls^.first := i;
-        //    swap(pre^.next, i^.next);
-        //end;
+        p := ls^.first; // FH
+        i := p^.next; // 1st actual element
+        n := i^.next; // 2nd actual element, possibly nil
         while n <> nil do begin
             if i^.value > n^.value then begin
+                f := true;
                 p^.next := n;
                 i^.next := n^.next;
                 n^.next := i;
@@ -191,7 +175,8 @@ begin
             n := n^.next;
         end;
     end;
-end;}
+    ls^.last := i; // In case swapped last & pre-last
+end;
 
 { Section Main }
 
@@ -233,6 +218,11 @@ begin
     print_list(ls);
     writeln;
 
+    writeln('Sort:');
+    sort(ls);
+    print_list(ls);
+    writeln;
+
     writeln('Extra push front:');
     push_front(ls, '!');
     print_list(ls);
@@ -240,6 +230,11 @@ begin
 
     writeln('Extra push back:');
     push_back(ls, '#');
+    print_list(ls);
+    writeln;
+
+    writeln('Extra sort:');
+    sort(ls);
     print_list(ls);
     writeln;
 
