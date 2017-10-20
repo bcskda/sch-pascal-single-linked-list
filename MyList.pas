@@ -20,12 +20,19 @@ Interface
     function new_list(): PTMyList;
     procedure free_list(var ls: PTMyList);
 
+    procedure next(var i: PTMyList_el);
+
     procedure print_list(const ls: PTMyList);
 
     procedure push_back(var ls: PTMyList; const value: _T);
     procedure push_front(var ls: PTMyList; const value: _T);
     procedure pop_back(var ls: PTMyList);
     procedure pop_front(var ls: PTMyList);
+
+    procedure insert(var ls: PTMyList; index: integer; const value: _T; count: integer);
+    procedure insert(var ls: PTMyList; index: integer; const value: _T);
+    procedure remove(var ls: PTMyList; index: integer; count: integer);
+    procedure remove(var ls: PTMyList; index: integer);
 
     procedure reverse(var ls: PTMyList);
     procedure sort(var ls: PTMyList);
@@ -73,6 +80,12 @@ Implementation
         ls^.last := nil;
     end;
 
+    { Section Iterator }
+    procedure next(var i: PTMyList_el);
+    begin
+        i := i^.next;
+    end;
+    
     { Section I/O }
 
     procedure print_list(const ls: PTMyList);
@@ -145,6 +158,67 @@ Implementation
         dec(ls^.size);
     end;
 
+    procedure insert(var ls: PTMyList; index: integer; const value: _T; count: integer);
+    var
+        i, p: PTMyList_el;
+        j: integer;
+    begin
+        if (index > ls^.size + 1) then // TODO handle
+            exit;
+        if (count <= 0) then // No effect
+            exit;
+        i := ls^.first;
+        j := 0;
+        while (j < index - 1) do begin
+            next(i);
+            inc(j);
+        end;
+        while (count > 0) do begin
+            p := i^.next;
+            new(i^.next);
+            i^.next^.next := p;
+            i^.next^.value := value;
+            inc(ls^.size);
+            next(i);
+            dec(count);
+        end;
+        if (p = nil) then
+            ls^.last := i;
+    end;
+
+    procedure insert(var ls: PTMyList; index: integer; const value: _T);
+    begin
+        insert(ls, index, value, 1);
+    end;
+
+    procedure remove(var ls: PTMyList; index: integer; count: integer);
+    var
+        i, p: PTMyList_el;
+        j: integer;
+    begin
+        if ((index > ls^.size) or (count <= 0)) then // No effect
+            exit;
+        i := ls^.first;
+        j := 0;
+        while (j < index - 1) do begin
+            next(i);
+            inc(j);
+        end;
+        while (count > 0) do begin
+            p := i^.next;
+            i^.next := p^.next;
+            dispose(p);
+            dec(count);
+        end;
+        if (i^.next = nil) then
+            ls^.last := i;
+    end;
+
+    procedure remove(var ls: PTMyList; index: integer);
+    begin
+        remove(ls, index, 1);
+    end;
+    
     { Section Algorithm }
 
     procedure reverse(var ls: PTMyList);
@@ -250,8 +324,18 @@ Implementation
             print_list(ls);
             writeln;
 
+            writeln('Remove 2 at #2:');
+            remove(ls, 2, 2);
+            print_list(ls);
+            writeln;
+
             writeln('Extra sort:');
             sort(ls);
+            print_list(ls);
+            writeln;
+
+            writeln('Add 2 at #4:');
+            insert(ls, 4, '@', 2);
             print_list(ls);
             writeln;
 
