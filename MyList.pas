@@ -22,10 +22,11 @@ Unit MyList;
 
 Interface
     type
-        _T = char;
-        PTMyList_el= ^TMyList_el;
+        TProcedure_pointer = procedure(var p: pointer);
+        TIntFunc_pointer_pointer = function(a, b: pointer): integer;
+        PTMyList_el = ^TMyList_el;
         TMyList_el = record
-            value: _T;
+            value: pointer;
             next: PTMyList_el;
         end;
         TMyList = record // Try use Fake Head
@@ -42,20 +43,24 @@ Interface
 
     procedure print_list(const ls: PTMyList);
 
-    procedure push_back(var ls: PTMyList; const value: _T);
-    procedure push_front(var ls: PTMyList; const value: _T);
+    procedure push_back(var ls: PTMyList; const value: pointer);
+    procedure push_front(var ls: PTMyList; const value: pointer);
     procedure pop_back(var ls: PTMyList);
     procedure pop_front(var ls: PTMyList);
 
-    procedure insert(var ls: PTMyList; index: integer; const value: _T; count: integer);
-    procedure insert(var ls: PTMyList; index: integer; const value: _T);
+    procedure insert(var ls: PTMyList; index: integer; const value: pointer; count: integer);
+    procedure insert(var ls: PTMyList; index: integer; const value: pointer);
     procedure remove(var ls: PTMyList; index: integer; count: integer);
     procedure remove(var ls: PTMyList; index: integer);
 
     procedure reverse(var ls: PTMyList);
     procedure sort(var ls: PTMyList);
 
-    procedure MyList_PerfTest();
+    var
+        ML_TNew: TProcedure_pointer;
+        ML_TFree: TProcedure_pointer;
+        ML_TPrint: TProcedure_pointer;
+        ML_TCmp: TIntFunc_pointer_pointer;
 
 Implementation
     { Section Common func }
@@ -91,6 +96,7 @@ Implementation
         while i <> nil do begin
             j := i;
             i := i^.next;
+            ML_TFree(j^.value);
             dispose(j);
             dec(ls^.size);
         end;
@@ -115,10 +121,16 @@ Implementation
         write('  "data": [ ');
         i := ls^.first^.next;
         while i <> nil do begin
-            if i^.next <> nil then
-                write('"', i^.value, '", ')
-            else
-                write('"', i^.value, '" ');
+            if i^.next <> nil then begin
+                write('"');
+                ML_TPrint(i^.value);
+                write('", ')
+            end
+            else begin
+                write('"');
+                ML_TPrint(i^.value);
+                write('" ')
+            end;
             i := i^.next;
         end;
         writeln(']');
@@ -127,7 +139,7 @@ Implementation
 
     { Section Push/Pop }
 
-    procedure push_back(var ls: PTMyList; const value: _T);
+    procedure push_back(var ls: PTMyList; const value: pointer);
     begin
         new(ls^.last^.next);
         ls^.last^.next^.next := nil;
@@ -136,7 +148,7 @@ Implementation
         inc(ls^.size);
     end;
 
-    procedure push_front(var ls: PTMyList; const value: _T);
+    procedure push_front(var ls: PTMyList; const value: pointer);
     begin
         insert(ls, 1, value);
     end;
@@ -152,6 +164,7 @@ Implementation
             j := i;
             i := i^.next;
         end; // Now pre-last element lies at j
+        ML_TFree(j^.next^.value);
         dispose(j^.next);
         j^.next := nil;
         ls^.last := j;
@@ -163,7 +176,7 @@ Implementation
         remove(ls, 1);
     end;
 
-    procedure insert(var ls: PTMyList; index: integer; const value: _T; count: integer);
+    procedure insert(var ls: PTMyList; index: integer; const value: pointer; count: integer);
     var
         i, p: PTMyList_el;
         j: integer;
@@ -191,7 +204,7 @@ Implementation
             ls^.last := i;
     end;
 
-    procedure insert(var ls: PTMyList; index: integer; const value: _T);
+    procedure insert(var ls: PTMyList; index: integer; const value: pointer);
     begin
         insert(ls, index, value, 1);
     end;
@@ -213,6 +226,7 @@ Implementation
             p := i^.next;
             i^.next := p^.next;
             dec(ls^.size);
+            ML_TFree(p^.value);
             dispose(p);
             dec(count);
         end;
@@ -260,7 +274,7 @@ Implementation
             i := p^.next; // 1st actual element
             n := i^.next; // 2nd actual element, possibly nil
             while n <> nil do begin
-                if i^.value > n^.value then begin
+                if ML_TCmp(i^.value, n^.value) = 1 then begin
                     f := true;
                     p^.next := n;
                     i^.next := n^.next;
@@ -275,85 +289,4 @@ Implementation
         ls^.last := i; // In case swapped last & pre-last
     end;
 
-    { Section Tests }
-    procedure MyList_PerfTest();
-        var
-            ls: PTMyList;
-
-        begin
-            writeln('Init:');
-            ls := new_list();
-            print_list(ls);
-            writeln;
-
-            writeln('Push back:');
-            push_back(ls, 'a');
-            push_back(ls, 'b');
-            push_back(ls, 'c');
-            print_list(ls);
-            writeln;
-
-            writeln('Pop back:');
-            pop_back(ls);
-            print_list(ls);
-            writeln;
-
-            writeln('Push front:');
-            push_front(ls, 'x');
-            push_front(ls, 'y');
-            push_front(ls, 'z');
-            print_list(ls);
-            writeln;
-
-            writeln('Pop front:');
-            pop_front(ls);
-            print_list(ls);
-            writeln;
-
-            writeln('Reverse:');
-            reverse(ls);
-            print_list(ls);
-            writeln;
-
-            writeln('Sort:');
-            sort(ls);
-            print_list(ls);
-            writeln;
-
-            writeln('Extra push front:');
-            push_front(ls, '!');
-            print_list(ls);
-            writeln;
-
-            writeln('Extra push back:');
-            push_back(ls, '#');
-            print_list(ls);
-            writeln;
-
-            writeln('Remove 2 at #2:');
-            remove(ls, 2, 2);
-            print_list(ls);
-            writeln;
-
-            writeln('Extra sort:');
-            sort(ls);
-            print_list(ls);
-            writeln;
-
-            writeln('Add 2 at #4:');
-            insert(ls, 4, '@', 2);
-            print_list(ls);
-            writeln;
-
-            writeln('Extra reverse:');
-            reverse(ls);
-            print_list(ls);
-            writeln;
-
-            writeln('Free:');
-            free_list(ls);
-            print_list(ls);
-            writeln;
-
-        end;
 end.
