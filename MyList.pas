@@ -119,14 +119,8 @@ Implementation
     end;
 
     procedure push_front(var ls: PTMyList; const value: _T);
-    var
-        t: PTMyList_el;
     begin
-        new(t);
-        swap(ls^.first^.next, t);
-        ls^.first^.next^.next := t;
-        ls^.first^.next^.value := value;
-        inc(ls^.size);
+        insert(ls, 1, value);
     end;
 
     procedure pop_back(var ls: PTMyList);
@@ -147,15 +141,8 @@ Implementation
     end;
 
     procedure pop_front(var ls: PTMyList);
-    var
-        t: PTMyList_el;
     begin
-        if ls^.first^.next = nil then // empty
-            exit;
-        t := ls^.first^.next;
-        ls^.first^.next := t^.next;
-        dispose(t);
-        dec(ls^.size);
+        remove(ls, 1);
     end;
 
     procedure insert(var ls: PTMyList; index: integer; const value: _T; count: integer);
@@ -207,6 +194,7 @@ Implementation
         while (count > 0) do begin
             p := i^.next;
             i^.next := p^.next;
+            dec(ls^.size);
             dispose(p);
             dec(count);
         end;
@@ -349,19 +337,5 @@ Implementation
             print_list(ls);
             writeln;
 
-            writeln('Try pop back empty:');
-            pop_back(ls);
-            print_list(ls);
-            writeln;
-            
-            writeln('Try pop front empty:');
-            pop_front(ls);
-            print_list(ls);
-            writeln;
-            
-            writeln('Try reverse empty:');
-            reverse(ls);
-            print_list(ls);
-            writeln;
         end;
 end.
