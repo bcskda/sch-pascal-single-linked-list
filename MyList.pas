@@ -48,8 +48,8 @@ Interface
     procedure pop_back(var ls: PTMyList);
     procedure pop_front(var ls: PTMyList);
 
-    procedure insert(var ls: PTMyList; index: integer; const value: pointer; count: integer);
-    procedure insert(var ls: PTMyList; index: integer; const value: pointer);
+    procedure insert(var ls: PTMyList; const value: pointer; index: integer; count: integer);
+    procedure insert(var ls: PTMyList; const value: pointer; index: integer);
     procedure remove(var ls: PTMyList; index: integer; count: integer);
     procedure remove(var ls: PTMyList; index: integer);
 
@@ -150,7 +150,7 @@ Implementation
 
     procedure push_front(var ls: PTMyList; const value: pointer);
     begin
-        insert(ls, 1, value);
+        insert(ls, value, 1);
     end;
 
     procedure pop_back(var ls: PTMyList);
@@ -176,7 +176,7 @@ Implementation
         remove(ls, 1);
     end;
 
-    procedure insert(var ls: PTMyList; index: integer; const value: pointer; count: integer);
+    procedure insert(var ls: PTMyList; const value: pointer; index: integer; count: integer);
     var
         i, p: PTMyList_el;
         j: integer;
@@ -204,9 +204,9 @@ Implementation
             ls^.last := i;
     end;
 
-    procedure insert(var ls: PTMyList; index: integer; const value: pointer);
+    procedure insert(var ls: PTMyList; const value: pointer; index: integer);
     begin
-        insert(ls, index, value, 1);
+        insert(ls, value, index, 1);
     end;
 
     procedure remove(var ls: PTMyList; index: integer; count: integer);
