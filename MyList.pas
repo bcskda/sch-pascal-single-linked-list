@@ -274,7 +274,7 @@ Implementation
             i := p^.next; // 1st actual element
             n := i^.next; // 2nd actual element, possibly nil
             while n <> nil do begin
-                if ML_TCmp(i^.value, n^.value) = 1 then begin
+                if ML_TCmp(i^.value, n^.value) = 0 then begin
                     f := true;
                     p^.next := n;
                     i^.next := n^.next;
