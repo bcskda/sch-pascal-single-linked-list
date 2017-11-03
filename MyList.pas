@@ -61,6 +61,11 @@ Interface
         ML_TFree: TProcedure_pointer;
         ML_TPrint: TProcedure_pointer;
         ML_TCmp: TIntFunc_pointer_pointer;
+        {
+          Comparator:
+          f(a, b) = 1, a <= b
+          f(a, b) = 0, a > b
+        }
 
 Implementation
     { Section Common func }
