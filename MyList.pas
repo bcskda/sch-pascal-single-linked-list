@@ -118,22 +118,17 @@ Implementation
     begin
         writeln('{');
         writeln('  "size":"', ls^.size, '",');
-        write('  "data": [ ');
+        writeln('  "data": [ ');
         i := ls^.first^.next;
         while i <> nil do begin
-            if i^.next <> nil then begin
-                write('"');
-                ML_TPrint(i^.value);
-                write('", ')
-            end
-            else begin
-                write('"');
-                ML_TPrint(i^.value);
-                write('" ')
-            end;
+            write('    ');
+            ML_TPrint(i^.value);
+            if i^.next <> nil then
+                write(',');
             i := i^.next;
+            writeln;
         end;
-        writeln(']');
+        writeln('  ]');
         writeln('}');
     end;
 
